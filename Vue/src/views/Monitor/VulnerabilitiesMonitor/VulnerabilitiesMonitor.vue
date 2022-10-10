@@ -79,6 +79,7 @@
 <script>
 import Card from '@/components/Card/Card.vue'
 import Tables from '@/components/Tables/CTables.vue'
+import moment from 'moment';
 import { mapGetters } from "vuex";
 import { Icon } from "ant-design-vue";
 const faceConfig = require("../../../../faceConfig");
@@ -127,6 +128,10 @@ export default {
           dataIndex: "last_up_date",
           key: "last_up_date",
            width: 120,
+            customRender: (text, record, index) => {
+                return text? moment(text, "X").format('YYYY-MM-DD H:mm:ss'):'';
+            },
+
         },
         // {
         //   title: "CVSS v3 分数",
@@ -198,7 +203,7 @@ export default {
     },
     handleNistStatistics (severity, key) {
       const _this = this
-      if (severity || key) {
+        if (severity || key) {
         const params = {
           token: _this.token,
           number_of_pages: _this.current,
@@ -228,7 +233,6 @@ export default {
       }
     },
     handleNistQuery () {
-      this.loading = true
       const _this = this
       const form = _this.form.getFieldsValue()
       if (form.severity && !form.key) {
@@ -246,10 +250,12 @@ export default {
           severity: form.severity ? form.severity : "",
           key: form.key ? form.key : "",
         };
-        _this.handleNistStatistics(form.severity, form.key)
+          this.loading = true
+        // _this.handleNistStatistics(form.severity, form.key)
         _this.$api.nist_search(params).then((res) => {
           if (res.code == 200) {
             _this.data = res.message
+              _this.total = res.number
           } else {
             _this.$message.error(res.message);
           }
@@ -262,10 +268,11 @@ export default {
           token: _this.token,
           number_of_pages: _this.current,
         };
-        _this.handleNistStatistics()
+        // _this.handleNistStatistics()
         _this.$api.nist_data_bulk_query(params).then((res) => {
           if (res.code == 200) {
-            _this.data = res.message
+              _this.total = res.number
+              _this.data = res.message
           } else {
             _this.$message.error(res.message);
           }
@@ -284,22 +291,22 @@ export default {
       let color = ''
       switch (text) {
         case 'NONE':
-          color = "#00FF99"
+          color = "#d2d6de"
           break;
         case 'LOW':
-          color = "#00FF66"
+          color = "#00c0ef"
           break;
         case 'MEDIUM':
-          color = "#FF9900"
+          color = "#f39c12"
           break;
         case 'HIGH':
-          color = "#FF6633"
+          color = "#dd4b39"
           break;
         case 'CRITICAL':
-          color = "#FF6666"
+          color = "#972b1e"
           break;
         default:
-          color = "#909399"
+          color = "#d2d6de"
           break;
       }
       return text ? <a-tag color={color}>{type === 'v2'?record.v2_base_score:record.v3_base_score}{text} </a-tag > : <a-tag color={color}>N/A</a-tag>
@@ -309,14 +316,27 @@ export default {
         let dom = ''
         if (arr.length > 0) {
       //   arr = Array.from(new Set(arr))
-        dom = arr.map((item) => {
-          return <a-tag color="green" v-on:click={() => {
-            this.handleClickVendorsAndProducts(item)//暂时没用
-          }}>{item}<br /></a-tag>
+        dom =arr.length >3?
+            <span className="overflowSpan">
+              <span className="badge badge-primary">{arr.length}</span>
+              <span style="color: #3c8dbc; padding:0 2px; vertical-align: middle;" v-on:click={() => {
+                  this.handleClickVendorsAndProducts()//暂时没用
+              }}>`${arr[0]},${arr[1]},${arr[2]} and ${arr.length-3}more`</span>
+          </span>
+            : arr.map((item) => {
+          return  <span >
+              <span class="badge badge-primary">{arr.length}</span>
+              <span style="color: #3c8dbc; padding:0 2px; vertical-align: middle;" v-on:click={() => {
+                  this.handleClickVendorsAndProducts(item)//暂时没用
+              }}>{item}</span>
+          </span>
         })
       }
       return dom
     },
+      handleRenderLastUpDate (text, record, index) {
+         return text ? this.moment(text).format('YYYY-MM-DD H:mm:ss') : ""
+      },
     handleClickVendorsAndProducts (item) {//暂时没用
       console.log(item)
     },
@@ -358,6 +378,26 @@ export default {
     td{
       border-top: 0;
     }
+  }
+  .overflowSpan{
+    width: 300px;
+    overflow:hidden; //超出的文本隐藏
+    text-overflow:ellipsis; //溢出用省略号显示
+    white-space:nowrap; //溢出不换行
+  }
+  .badge {
+    display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    background-color: #2b4049;
+    border-radius: 10px;
   }
   .ant-table-thead > tr > th, .ant-table-tbody > tr > td{
     padding: 8px 8px;

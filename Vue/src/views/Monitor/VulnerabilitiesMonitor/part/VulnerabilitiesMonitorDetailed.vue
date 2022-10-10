@@ -38,16 +38,17 @@
                   class="innerFont"
                 >
                   <span
-                    style="font-size:32px"
+                    class="V2Score"
                   >{{item.body.cvssV2?item.body.cvssV2.baseScore:item.body.cvssV3.baseScore}}</span>
-                  <span>/10</span>
-                  <div>
+
+                    <sup style="font-size: 20px; top:-0.5em"> /10</sup>
+                  <div class="severityScore">
                     {{item.body.cvssV2?'cvssV2:':'cvssV3:'}}
                     {{item.body.severity?item.body.severity:item.body.cvssV2?item.body.cvssV2.baseSeverity:item.body.cvssV3.baseSeverity}}
                   </div>
                 </a-col>
-                <a-col>Vector :{{item.body.cvssV3?item.body.cvssV3.version:item.body.cvssV2.version}}</a-col>
-                <a-col>Exploitability :{{item.body.exploitabilityScore?item.body.exploitabilityScore:''}}/Impact :{{item.body.impactScore?item.body.impactScore:''}}</a-col>
+                <div class="severityScore"><strong>Vector :</strong>{{item.body.cvssV3?item.body.cvssV3.version:item.body.cvssV2.version}}</div>
+                  <div class="severityScore"><strong>Exploitability :</strong>{{item.body.exploitabilityScore?item.body.exploitabilityScore:''}}/<strong>Impact :</strong>{{item.body.impactScore?item.body.impactScore:''}}</div>
               </a-col>
               <a-col :xs="24" :lg="16">
                 <a-col :xs="24" :lg="12" v-for="(value,key,index) in (item.cvssV)" :key="index">
@@ -70,7 +71,8 @@
         <Card :name="'References'" :headStyle="bodyStyle" detailCard>
           <!-- <a-icon slot="extraCard"  type="minus" /> -->
           <Tables
-           bordered
+            :bordered="true"
+            :scroll="{ x: `${columns.length}0%`, y: 400 }"
             class="references_table"
             :columns="columns"
             :tableData="data"
@@ -87,7 +89,7 @@
     </a-col>
     <a-col :xs="24" :lg="8">
       <a-col :xs="24">
-        <Card  :bodyStyle="bodyStyle" style="textAlign:left;margin-top:44px" :showTitle="false" detailCard>
+        <Card  :bodyStyle="bodyStyle" style="textAlign:left;margin-top:36px" :showTitle="false" detailCard>
             <div class="content-header" style="padding-left:8px">
                 <h1>Information</h1>
             </div>
@@ -116,8 +118,11 @@
         </Card>
       </a-col>
       <a-col :xs="24">
-        <Card :name="'Products Affected'" :bodyStyle="bodyStyle" detailCard>
+        <Card   :bodyStyle="bodyStyle" style="textAlign:left;margin-top:4px" detailCard :showTitle="false">
           <!-- <MarkdownPreview /> -->
+            <div class="content-header" style="padding-left:8px">
+                <h1>Products Affected</h1>
+            </div>
           <a-col v-for="(items,i) in productsAffected" :key="i" style="text-align:left">
             <a-col style="font-weight: 800">{{items.name}}</a-col>
             <a-col v-for="(item,i) in items.body" :key="i">
@@ -163,12 +168,14 @@ export default {
           title: "Link",
           dataIndex: "name",
           key: "name",
-          customRender: (text, record, index) => this.handleRenderLink(text, record, index)
+            width: 100,
+            customRender: (text, record, index) => this.handleRenderLink(text, record, index)
         },
         {
           title: "Resource",
           dataIndex: "tags",
           key: "tags",
+            width: 100,
           customRender: (text, record, index) => this.handleRenderTags(text, record, index)
         },
       ],
@@ -268,19 +275,19 @@ export default {
       let color = ''
       switch (val) {
         case 'NONE':
-          color = "#00FF99"
+          color = "#d2d6de"
           break;
         case 'LOW':
-          color = "#00FF66"
+          color = "#00c0ef"
           break;
         case 'MEDIUM':
-          color = "#FF9900"
+          color = "#f39c12"
           break;
         case 'HIGH':
-          color = "#FF6633"
+          color = "#dd4b39"
           break;
         case 'CRITICAL':
-          color = "#FF6666"
+          color = "#972b1e"
           break;
         default:
           color = "#d2d6de"
@@ -311,7 +318,7 @@ export default {
     },
     handleRenderTags (text, record, index) {
       let dom = text.map((item) => {
-        return <a-tag color="#777" >{item}<br /></a-tag>
+        return  <span class="badge">{item}</span>
       })
       return dom
     },
@@ -351,6 +358,26 @@ export default {
 </script>
 
 <style lang="scss">
+.V2Score{
+  font-size: 38px;
+  font-weight: bold;
+  margin: 0 0 10px 0;
+  white-space: nowrap;
+  padding: 0
+}
+.ant-table-scroll{
+  .ant-table-body{
+    overflow: inherit !important;
+  }
+}
+.severityScore{
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+//.strDiv{
+//  font-weight: 700;
+//  margin: 0 0 10px;
+//}
 .card-tab{
   border-top: 3px solid #2b4049;
   background-color: #fff;
@@ -399,10 +426,25 @@ export default {
 a{
   color: #3c8dbc;
 }
+.badge {
+  display: inline-block;
+  min-width: 10px;
+  padding: 3px 7px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  background-color: #777;
+  border-radius: 10px;
+  margin:0 2px
+}
 .content-header{
   position: relative;
   text-align: left;
-  font-size: 24px
+  font-size: 18px;
 }
 .inner {
   text-align: left;
@@ -410,6 +452,12 @@ a{
   font-size: 18px;
   .innerFont {
     color: #fff;
+    margin-bottom: 20px;
+  }
+}
+.ant-card-body{
+  .ant-divider-horizontal{
+    margin: 20px 0;
   }
 }
 .cvssV {

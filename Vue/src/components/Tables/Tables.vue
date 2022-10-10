@@ -1,6 +1,10 @@
 <script>
 export default {
   props: {
+      bordered: {
+          type: Boolean,
+          default: true
+      },
     columns: {
       type: Array,
       default: () => {
@@ -153,6 +157,7 @@ export default {
   },
   render: function (h) {
     const props = {
+      bordered:this.bordered,
       columns: this.columns,
       dataSource: this.tableData,
       scroll: this.scrollTable,

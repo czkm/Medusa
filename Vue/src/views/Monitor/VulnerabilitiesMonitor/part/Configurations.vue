@@ -33,6 +33,7 @@ export default {
               },
               style: {
                 textAlign: 'left',
+                fontWeight: '700'
               },
             }, `Configurations${i + 1}`) : '',
             items.cpe_match.length == 1 ? '' :
